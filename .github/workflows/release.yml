@@ -15,21 +15,21 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-      - name: Build
+      - name: Build (self-contained, no .NET install needed on target PC)
         shell: pwsh
-        run: ./build.ps1
+        run: ./build.ps1 -SelfContained
       - name: Smoke test
         shell: pwsh
         continue-on-error: true
         run: |
-          ./ToolHub.exe --smoke
+          ./dist/ToolHub/ToolHub.exe --smoke
           Start-Sleep -Seconds 8
           if (Test-Path "$env:APPDATA/ToolHub/smoke.txt") { Get-Content "$env:APPDATA/ToolHub/smoke.txt" }
       - name: Package
         shell: pwsh
         run: |
           $name = "ToolHub-${{ github.ref_name }}-win-x64.zip"
-          Compress-Archive -Path ToolHub.exe,ToolHub.dll,ToolHub.deps.json,ToolHub.runtimeconfig.json,modules,README.md -DestinationPath $name
+          Move-Item dist/ToolHub-win-x64.zip $name
           "ASSET=$name" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
       - name: Publish release
         shell: pwsh

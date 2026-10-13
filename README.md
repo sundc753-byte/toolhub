@@ -55,3 +55,12 @@ SDK 는 `%USERPROFILE%\.dotnet` 에 설치되어 있고 build.ps1 이 자동으�
 - 트레이 메뉴 "기존 단독 프로그램 자동 시작 항목 정리..." 로 기존 exe 들의 시작 프로그램 등록을 제거(확인 후).
 - 관리자 권한이 필요한 경우 "관리자 권한으로 다시 시작" 사용.
 - 타임스탬프/클립보드는 원본의 자체 트레이·자동 시작 코드를 제외하고 허브가 대신 담당.
+
+## 배포본 (.NET 설치 불필요)
+
+```
+.\build.ps1 -SelfContained     # dist\ToolHub\ + dist\ToolHub-win-x64.zip (.NET 런타임 포함, 약 67MB zip)
+```
+
+받는 PC 에서는 zip 을 풀고 `ToolHub.exe` 만 실행하면 됩니다 (.NET 8 런타임/데스크톱 런타임 설치 불필요, x64 Windows 10 이상).
+GitHub Release(태그 `v*`)도 이 런타임 포함 zip 으로 만들어집니다.
