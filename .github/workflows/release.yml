@@ -1,0 +1,38 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Build
+        shell: pwsh
+        run: ./build.ps1
+      - name: Smoke test
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          ./ToolHub.exe --smoke
+          Start-Sleep -Seconds 8
+          if (Test-Path "$env:APPDATA/ToolHub/smoke.txt") { Get-Content "$env:APPDATA/ToolHub/smoke.txt" }
+      - name: Package
+        shell: pwsh
+        run: |
+          $name = "ToolHub-${{ github.ref_name }}-win-x64.zip"
+          Compress-Archive -Path ToolHub.exe,ToolHub.dll,ToolHub.deps.json,ToolHub.runtimeconfig.json,modules,README.md -DestinationPath $name
+          "ASSET=$name" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
+      - name: Publish release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${{ github.ref_name }}" "$env:ASSET" --title "ToolHub ${{ github.ref_name }}" --generate-notes
