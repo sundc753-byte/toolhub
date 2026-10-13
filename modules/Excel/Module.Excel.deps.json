@@ -1,0 +1,26 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "Module.Excel/1.0.0": {
+        "dependencies": {
+          "ToolHub": "1.0.0"
+        },
+        "runtime": {
+          "Module.Excel.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Module.Excel/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

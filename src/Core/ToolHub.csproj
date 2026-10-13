@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- 모듈(클립보드 등)이 WPF 를 쓰므로 WindowsDesktop 전체 프레임워크를 참조한다 -->
+    <UseWPF>true</UseWPF>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>ToolHub</AssemblyName>
+    <RootNamespace>ToolHub</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <!-- 결과물은 ToolHub 폴더 루트에 둔다 (ToolHub.exe) -->
+    <ToolHubOut Condition="'$(ToolHubOut)' == ''">$(MSBuildThisFileDirectory)..\..\</ToolHubOut>
+    <OutDir>$(ToolHubOut)</OutDir>
+  </PropertyGroup>
+
+</Project>

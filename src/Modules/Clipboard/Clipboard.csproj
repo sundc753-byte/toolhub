@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Windows 내장 OCR(WinRT)을 쓰므로 Windows 10 TFM 이 필요하다 -->
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>Module.Clipboard</AssemblyName>
+    <RootNamespace>ClipboardApp</RootNamespace>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <ToolHubOut Condition="'$(ToolHubOut)' == ''">$(MSBuildThisFileDirectory)..\..\..\</ToolHubOut>
+    <OutDir>$(ToolHubOut)modules\Clipboard\</OutDir>
+  </PropertyGroup>
+
+  <!-- 라이브러리 프로젝트는 WinRT 투영 DLL 을 출력에 복사하지 않으므로 직접 복사한다 -->
+  <Target Name="CopyWinRtProjection" AfterTargets="Build">
+    <ItemGroup>
+      <WinRtFile Include="@(ReferencePath)" Condition="'%(Filename)' == 'Microsoft.Windows.SDK.NET' or '%(Filename)' == 'WinRT.Runtime'" />
+    </ItemGroup>
+    <Copy SourceFiles="@(WinRtFile)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+  </Target>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\ToolHub.csproj">
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+
+</Project>
