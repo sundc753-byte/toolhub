@@ -54,15 +54,44 @@ public sealed class HistoryStore
         }
     }
 
+    private readonly object _saveLock = new();
+    private string? _pendingJson;
+    private bool _writing;
+
+    /// <summary>직렬화는 호출 스레드에서, 파일 쓰기는 백그라운드에서(마지막 내용만) 한다.</summary>
     public void Save()
     {
-        try
+        string json;
+        try { json = JsonSerializer.Serialize(Items.ToList()); }
+        catch (Exception) { return; }
+
+        lock (_saveLock)
         {
-            var tmp = _file + ".tmp";
-            File.WriteAllText(tmp, JsonSerializer.Serialize(Items.ToList()));
-            File.Move(tmp, _file, overwrite: true);
+            _pendingJson = json;
+            if (_writing) return;
+            _writing = true;
         }
-        catch (IOException) { }
+
+        System.Threading.Tasks.Task.Run(() =>
+        {
+            while (true)
+            {
+                string next;
+                lock (_saveLock)
+                {
+                    if (_pendingJson is null) { _writing = false; return; }
+                    next = _pendingJson;
+                    _pendingJson = null;
+                }
+                try
+                {
+                    var tmp = _file + ".tmp";
+                    File.WriteAllText(tmp, next);
+                    File.Move(tmp, _file, overwrite: true);
+                }
+                catch (IOException) { }
+            }
+        });
     }
 
     /// <summary>Adds text, or moves an identical entry to the top.</summary>

@@ -43,7 +43,7 @@ public sealed class ClipboardModule : ModuleBase
             {
                 _dispatcher = Dispatcher.CurrentDispatcher;
                 _store = new HistoryStore();
-                _window = new MainWindow(_store);
+                _window = new MainWindow(_store) { ThemeMode = Host.GetSetting(Id, "theme", "system") };
 
                 _monitor = new ClipboardMonitor();
                 _monitor.Changed += () => _dispatcher.BeginInvoke(OnClipboardChanged);
@@ -53,7 +53,7 @@ public sealed class ClipboardModule : ModuleBase
                 try
                 {
                     _hook = new KeyboardHook();
-                    _hook.WinVPressed += () => _dispatcher.BeginInvoke(_window.ShowPopup);
+                    _hook.WinVPressed += () => _dispatcher.BeginInvoke(_window.TogglePopup);
                 }
                 catch (Exception ex)
                 {
@@ -114,6 +114,17 @@ public sealed class ClipboardModule : ModuleBase
             _dispatcher?.BeginInvoke(new Action(() => _window?.ShowPopup()))));
         items.Add(new ToolStripMenuItem("기록 모두 지우기", null, (_, _) =>
             _dispatcher?.BeginInvoke(new Action(() => _store?.Clear()))));
+        var theme = new ToolStripMenuItem("테마");
+        foreach (var (mode, label) in new[] { ("system", "시스템에 따름"), ("light", "라이트 모드"), ("dark", "다크 모드") })
+        {
+            var m = mode;
+            theme.DropDownItems.Add(new ToolStripMenuItem(label, null, (_, _) =>
+            {
+                Host.SetSetting(Id, "theme", m);
+                _dispatcher?.BeginInvoke(new Action(() => { if (_window != null) _window.ThemeMode = m; }));
+            }) { Checked = Host.GetSetting(Id, "theme", "system") == m });
+        }
+        items.Add(theme);
         return items;
     }
 
@@ -332,6 +343,9 @@ public sealed class ClipboardModule : ModuleBase
 
     private async void OnClipboardChanged()
     {
+        // 팝업에서 붙여넣으려고 우리가 직접 바꾼 클립보드는 다시 읽지 않는다(재인코딩/저장 낭비).
+        if (_window is { } w && Environment.TickCount64 - w.LastPasteTick < 700) return;
+
         // The clipboard is often still locked by the copying app for a moment.
         await Task.Delay(40);
         for (var attempt = 0; attempt < 5; attempt++)

@@ -33,9 +33,18 @@ public sealed class ClipItem : INotifyPropertyChanged
     [JsonIgnore] public string? ImagePath { get; set; }
 
     [JsonIgnore]
-    public string Title => IsImage
-        ? $"이미지 {Width}×{Height}"
-        : Truncate(Text ?? "", 300);
+    public string Title
+    {
+        get
+        {
+            if (IsImage) return $"이미지 {Width}×{Height}";
+            // 한 줄만 표시: 여러 줄이면 첫째 줄 끝에 "..." 를 붙인다.
+            var lines = (Text ?? "").TrimStart().Split('\n');
+            var first = lines[0].TrimEnd('\r');
+            var more = lines.Length > 1 && string.Join("", lines[1..]).Trim().Length > 0;
+            return Truncate(first, 300) + (more ? "..." : "");
+        }
+    }
 
     [JsonIgnore]
     public string Subtitle
@@ -44,14 +53,13 @@ public sealed class ClipItem : INotifyPropertyChanged
         {
             if (!IsImage) return $"{(Text ?? "").Length}자";
             if (OcrText is null) return "텍스트 인식 중…";
-            var t = OcrText.Replace('\n', ' ').Replace('\r', ' ').Trim();
-            return t.Length == 0 ? "인식된 텍스트 없음" : "🔍 " + Truncate(t, 120);
+            return $"{OcrText.Trim().Length}자"; // 인식된 글자 수 (내용은 툴팁에서 확인)
         }
     }
 
     /// <summary>글자수 옆에 표시하는 클립보드 저장 일시 (올해는 월-일, 아니면 연도 포함).</summary>
     [JsonIgnore]
-    public string TimeLabel => "· " + Time.ToString(Time.Year == DateTime.Now.Year ? "MM-dd HH:mm" : "yyyy-MM-dd HH:mm");
+    public string TimeLabel => Time.ToString(Time.Year == DateTime.Now.Year ? "MM-dd HH:mm" : "yyyy-MM-dd HH:mm");
 
     /// <summary>Tab 으로 펼친 상세 패널에 보여줄 전체 내용(길이 제한 없음).</summary>
     [JsonIgnore]
