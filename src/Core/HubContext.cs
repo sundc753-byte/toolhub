@@ -222,6 +222,7 @@ namespace ToolHub
 
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add("관리 창 열기...", null, delegate { ShowManager(); });
+            menu.Items.Add("업데이트 확인...", null, delegate { CheckForUpdate(); });
 
             ToolStripMenuItem runKey = new ToolStripMenuItem("Windows 시작 시 실행");
             runKey.Checked = Autostart.IsRunKeyEnabled();
@@ -327,12 +328,26 @@ namespace ToolHub
             }
         }
 
+        // ----- 업데이트 -----
+
+        private async void CheckForUpdate()
+        {
+            try
+            {
+                if (await Updater.RunAsync(host, AppName)) ExitThread();
+            }
+            catch (Exception ex)
+            {
+                host.Log("update", "오류: " + ex.Message);
+            }
+        }
+
         // ----- 관리 창 -----
 
         private void ShowManager()
         {
             if (manager == null || manager.IsDisposed)
-                manager = new ManagerForm(modules, host, SetEnabled);
+                manager = new ManagerForm(modules, host, SetEnabled, CheckForUpdate);
             manager.RefreshList();
             manager.Show();
             manager.WindowState = FormWindowState.Normal;
@@ -398,13 +413,14 @@ namespace ToolHub
         private readonly System.Windows.Forms.Timer timer;
         private bool refreshing;
 
-        public ManagerForm(List<ModuleBase> modules, HubHost host, Action<ModuleBase, bool> setEnabled)
+        public ManagerForm(List<ModuleBase> modules, HubHost host, Action<ModuleBase, bool> setEnabled, Action checkUpdate)
         {
             this.modules = modules;
             this.host = host;
             this.setEnabled = setEnabled;
 
-            Text = "ToolHub - 모듈 관리";
+            string version = Updater.CurrentVersion(host.AppDir);
+            Text = "ToolHub - 모듈 관리" + (version.Length > 0 ? " (" + version + ")" : "");
             StartPosition = FormStartPosition.CenterScreen;
             ClientSize = new Size(760, 330);
             MinimumSize = new Size(620, 260);
@@ -432,6 +448,7 @@ namespace ToolHub
             buttons.Controls.Add(MakeButton("모듈 폴더", delegate { OpenPath(Path.Combine(host.AppDir, "modules")); }));
             buttons.Controls.Add(MakeButton("로그 보기", delegate { OpenPath(host.LogPath); }));
             buttons.Controls.Add(MakeButton("설정 폴더", delegate { OpenPath(host.DataDir); }));
+            buttons.Controls.Add(MakeButton("업데이트", delegate { checkUpdate(); }));
 
             Controls.Add(list);
             Controls.Add(buttons);

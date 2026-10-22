@@ -34,6 +34,12 @@
             <DropShadowEffect BlurRadius="14" ShadowDepth="2" Opacity="0.5" />
         </Border.Effect>
         <Grid Margin="8">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="346" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+
+          <Grid Grid.Column="0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
@@ -45,7 +51,7 @@
                      TextChanged="SearchBox_TextChanged" />
 
             <ListBox x:Name="List" Grid.Row="1" Background="Transparent" BorderThickness="0"
-                     HorizontalContentAlignment="Stretch"
+                     HorizontalContentAlignment="Stretch" SelectionChanged="List_SelectionChanged"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                      PreviewMouseLeftButtonUp="List_PreviewMouseLeftButtonUp">
                 <ListBox.ItemTemplate>
@@ -83,9 +89,17 @@
 
                             <StackPanel Grid.Column="2" VerticalAlignment="Center">
                                 <TextBlock Text="{Binding Title}" Foreground="White" TextWrapping="Wrap"
-                                           MaxHeight="54" TextTrimming="CharacterEllipsis" />
-                                <TextBlock Text="{Binding Subtitle}" Foreground="#A0A0A8" FontSize="11"
-                                           Margin="0,2,0,0" TextTrimming="CharacterEllipsis" />
+                                           MaxHeight="36" TextTrimming="CharacterEllipsis" />
+                                <Grid Margin="0,2,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding Subtitle}" Foreground="#A0A0A8" FontSize="11"
+                                               MaxWidth="170" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Grid.Column="1" Text="{Binding TimeLabel}" Foreground="#80808A" FontSize="11"
+                                               Margin="6,0,0,0" />
+                                </Grid>
                             </StackPanel>
 
                             <Button Grid.Column="3" Content="✕" Click="Delete_Click" Width="22" Height="22"
@@ -97,7 +111,30 @@
             </ListBox>
 
             <TextBlock Grid.Row="2" Margin="2,8,2,0" Foreground="#80808A" FontSize="11"
-                       Text="Ctrl+1~0 바로 붙여넣기 · ↑↓ 이동 · Enter 붙여넣기 · Del 삭제 · Esc 닫기" />
+                       Text="Ctrl+1~0 바로 붙여넣기 · ↑↓ 이동 · Enter 붙여넣기 · Tab 펼치기 · Del 삭제 · Esc 닫기"
+                       TextWrapping="Wrap" />
+          </Grid>
+
+          <!-- [ToolHub] Tab 으로 옆으로 펼쳐지는 상세 패널 -->
+          <Border x:Name="DetailPanel" Grid.Column="1" Width="340" Margin="8,0,0,0" Padding="10"
+                  Background="#2B2B2E" BorderBrush="#4A4A4E" BorderThickness="1" CornerRadius="8"
+                  Visibility="Collapsed">
+              <Grid>
+                  <Grid.RowDefinitions>
+                      <RowDefinition Height="Auto" />
+                      <RowDefinition Height="*" />
+                  </Grid.RowDefinitions>
+                  <TextBlock Grid.Row="0" Text="{Binding TimeLabel}" Foreground="#80808A" FontSize="11" Margin="0,0,0,8" />
+                  <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                      <StackPanel>
+                          <Image Source="{Binding Preview}" MaxWidth="318" Stretch="Uniform"
+                                 HorizontalAlignment="Left" Margin="0,0,0,8"
+                                 Visibility="{Binding IsImage, Converter={StaticResource BoolToVis}}" />
+                          <TextBlock Text="{Binding DetailText}" Foreground="White" TextWrapping="Wrap" />
+                      </StackPanel>
+                  </ScrollViewer>
+              </Grid>
+          </Border>
         </Grid>
     </Border>
 </Window>

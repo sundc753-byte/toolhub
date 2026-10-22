@@ -16,6 +16,13 @@ public partial class MainWindow : Window
     private readonly ICollectionView _view;
     private IntPtr _previousWindow;
 
+    // [ToolHub] Tab 으로 오른쪽에 상세 패널을 펼치는 기능
+    private const double CollapsedWidth = 380;
+    private const double DetailExtraWidth = 348; // 패널 340 + 간격 8
+    private const double MaxPopupHeight = 780;
+    private bool _expanded;
+    private double _baseLeft;
+
     public MainWindow(HistoryStore store)
     {
         InitializeComponent();
@@ -33,8 +40,11 @@ public partial class MainWindow : Window
 
         SearchBox.Text = "";
         var area = SystemParameters.WorkArea;
-        Left = area.Left + (area.Width - Width) / 2;
+        // 1~9,0 번 항목이 모두 보이도록 화면이 허락하는 만큼 세로를 늘린다.
+        Height = Math.Min(area.Height - 16, MaxPopupHeight);
         Top = area.Bottom - Height - 8;
+        _baseLeft = area.Left + (area.Width - CollapsedWidth) / 2;
+        SetExpanded(false);
 
         UpdateNumbers();
         Show();
@@ -65,6 +75,10 @@ public partial class MainWindow : Window
                 Hide();
                 e.Handled = true;
                 break;
+            case Key.Tab when Keyboard.Modifiers == ModifierKeys.None:
+                SetExpanded(!_expanded);
+                e.Handled = true;
+                break;
             case Key.Down:
                 MoveSelection(1);
                 e.Handled = true;
@@ -83,6 +97,19 @@ public partial class MainWindow : Window
                 break;
         }
     }
+
+    private void SetExpanded(bool expanded)
+    {
+        _expanded = expanded;
+        DetailPanel.Visibility = expanded ? Visibility.Visible : Visibility.Collapsed;
+        Width = expanded ? CollapsedWidth + DetailExtraWidth : CollapsedWidth;
+        var area = SystemParameters.WorkArea;
+        // 오른쪽으로 펼치되 화면을 벗어나면 왼쪽으로 밀어 맞춘다.
+        Left = Math.Max(area.Left, Math.Min(_baseLeft, area.Right - Width));
+    }
+
+    private void List_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
+        DetailPanel.DataContext = List.SelectedItem;
 
     /// <summary>Labels the first ten visible items 1..9,0 to match the Ctrl+digit shortcuts.</summary>
     private void UpdateNumbers()

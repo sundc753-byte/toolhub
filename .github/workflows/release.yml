@@ -29,7 +29,9 @@ jobs:
         shell: pwsh
         run: |
           $name = "ToolHub-${{ github.ref_name }}-win-x64.zip"
-          Move-Item dist/ToolHub-win-x64.zip $name
+          # 업데이트 버튼이 현재 버전을 알 수 있도록 태그를 version.txt 로 넣고 다시 압축
+          Set-Content -NoNewline -Path dist/ToolHub/version.txt -Value "${{ github.ref_name }}"
+          Compress-Archive -Path dist/ToolHub/* -DestinationPath $name -Force
           "ASSET=$name" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
       - name: Publish release
         shell: pwsh
