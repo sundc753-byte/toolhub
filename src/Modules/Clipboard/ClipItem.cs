@@ -49,6 +49,16 @@ public sealed class ClipItem : INotifyPropertyChanged
         }
     }
 
+    /// <summary>글자수 옆에 표시하는 클립보드 저장 일시 (올해는 월-일, 아니면 연도 포함).</summary>
+    [JsonIgnore]
+    public string TimeLabel => "· " + Time.ToString(Time.Year == DateTime.Now.Year ? "MM-dd HH:mm" : "yyyy-MM-dd HH:mm");
+
+    /// <summary>Tab 으로 펼친 상세 패널에 보여줄 전체 내용(길이 제한 없음).</summary>
+    [JsonIgnore]
+    public string DetailText => IsImage
+        ? (OcrText is null ? "텍스트 인식 중…" : (OcrText.Trim().Length == 0 ? "인식된 텍스트 없음" : OcrText.Trim()))
+        : (Text ?? "");
+
     private string _number = "";
 
     /// <summary>Hotkey label shown beside the item ("1".."9","0", or blank); set by the window.</summary>
